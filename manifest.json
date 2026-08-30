@@ -1,25 +1,15 @@
 {
-  "name": "Трекер привычек",
-  "short_name": "Привычки",
-  "description": "Ежедневный трекер привычек, благодарностей и аффирмаций",
+  "name": "Второе дыхание — трекер привычек",
+  "short_name": "Второе дыхание",
+  "description": "Ежедневный трекер привычек, дневник успеха и дневник идей",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0f1115",
-  "theme_color": "#0f1115",
   "orientation": "portrait",
+  "background_color": "#12151B",
+  "theme_color": "#12151B",
   "icons": [
-    {
-      "src": "icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
   ]
 }

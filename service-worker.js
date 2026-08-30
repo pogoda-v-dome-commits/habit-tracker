@@ -1,5 +1,5 @@
-const CACHE_NAME = 'habit-tracker-v1';
-const ASSETS = [
+const CACHE_NAME = 'second-wind-v1';
+const FILES_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
@@ -8,16 +8,16 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
-  );
   self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
+  );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    caches.keys().then((names) =>
+      Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n)))
     )
   );
   self.clients.claim();
@@ -25,15 +25,6 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
-        return caches.open(CACHE_NAME).then((cache) => {
-          if (event.request.method === 'GET' && response.status === 200) {
-            cache.put(event.request, response.clone());
-          }
-          return response;
-        });
-      }).catch(() => cached);
-    })
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });
