@@ -46,7 +46,7 @@
   .ring-holder{position:relative;width:88px;height:88px;flex:none;}
   .ring-holder svg{transform:rotate(-90deg);}
   .ring-bg{fill:none;stroke:var(--ink-3);stroke-width:5;}
-  .ring-fg{fill:none;stroke:var(--sage);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1);}
+  .ring-fg{fill:none;stroke:#3DDC84;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .5s cubic-bezier(.4,0,.2,1);}
   .ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
   .ring-pct{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:500;color:var(--text);}
   .head-text h1{font-family:'Fraunces',serif;font-weight:500;font-size:26px;margin:0 0 4px;letter-spacing:-0.01em;}
@@ -147,10 +147,88 @@
   .journal-entry .entry-text{font-size:14px;line-height:1.55;white-space:pre-wrap;}
   .journal-entry .remove-btn{opacity:0;}
   .journal-entry:hover .remove-btn{opacity:1;}
+
+  /* ---- storage warning banner ---- */
+  .storage-warning{
+    display:none;background:rgba(194,112,90,0.14);border:0.5px solid var(--danger);
+    color:var(--danger);font-size:13px;line-height:1.5;padding:12px 14px;border-radius:10px;
+    margin-bottom:20px;
+  }
+  .storage-warning.show{display:block;}
+
+  /* ---- section heading (stats / matrix) ---- */
+  .section{margin-top:44px;}
+  .section-head{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .section-head svg{width:18px;height:18px;color:var(--dawn);flex:none;}
+  .section-head h2{font-family:'Fraunces',serif;font-weight:500;font-size:19px;margin:0;letter-spacing:-0.01em;}
+  .section-sub{font-size:13px;color:var(--text-dim);margin:-8px 0 14px 28px;}
+
+  /* ---- stats ---- */
+  .stats-card{
+    background:var(--ink-2);border:0.5px solid var(--hairline-strong);border-radius:14px;
+    padding:18px;
+  }
+  .stats-row{display:flex;align-items:flex-end;gap:8px;height:96px;margin-bottom:10px;}
+  .stats-bar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:6px;}
+  .stats-bar{
+    width:100%;max-width:28px;background:var(--ink-3);border-radius:5px 5px 2px 2px;
+    position:relative;overflow:hidden;min-height:4px;
+  }
+  .stats-bar-fill{position:absolute;bottom:0;left:0;right:0;background:#3DDC84;border-radius:5px 5px 2px 2px;transition:height .4s ease;}
+  .stats-bar-label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text-faint);}
+  .stats-summary{display:flex;justify-content:space-between;border-top:0.5px solid var(--hairline-strong);padding-top:12px;margin-top:4px;}
+  .stats-summary-item{text-align:center;flex:1;}
+  .stats-summary-num{font-family:'IBM Plex Mono',monospace;font-size:20px;color:var(--text);font-weight:500;}
+  .stats-summary-label{font-size:11px;color:var(--text-dim);margin-top:2px;}
+
+  /* ---- eisenhower matrix ---- */
+  .matrix-grid{display:grid;grid-template-columns:1fr;gap:14px;}
+  .matrix-quad{
+    background:var(--ink-2);border:0.5px solid var(--hairline-strong);border-radius:14px;padding:14px;
+    border-top:2.5px solid var(--q-color, var(--dawn));
+  }
+  .matrix-quad h3{font-family:'Fraunces',serif;font-weight:500;font-size:15px;margin:0 0 2px;color:var(--text);}
+  .matrix-quad .matrix-sub{font-size:11.5px;color:var(--text-dim);margin-bottom:10px;}
+  .matrix-list{display:flex;flex-direction:column;gap:1px;margin-bottom:10px;}
+  .matrix-task{
+    display:flex;align-items:flex-start;gap:10px;padding:8px 2px;border-bottom:0.5px solid var(--hairline);
+  }
+  .matrix-task:last-child{border-bottom:none;}
+  .matrix-check{
+    flex:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--text-faint);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;background:transparent;
+    margin-top:1px;transition:all .15s;color:transparent;
+  }
+  .matrix-check svg{width:12px;height:12px;}
+  .matrix-task.done .matrix-check{background:var(--sage);border-color:var(--sage);color:var(--ink);}
+  .matrix-task-text{flex:1;font-size:13.5px;line-height:1.4;cursor:pointer;user-select:none;}
+  .matrix-task.done .matrix-task-text{color:var(--text-dim);text-decoration:line-through;text-decoration-color:var(--text-faint);}
+  .matrix-task .remove-btn{opacity:0;width:20px;height:20px;}
+  .matrix-task:hover .remove-btn{opacity:1;}
+  .matrix-task .remove-btn svg{width:13px;height:13px;}
+  .matrix-add{display:flex;gap:8px;}
+  .matrix-add input{
+    flex:1;background:var(--ink-3);border:0.5px solid var(--hairline-strong);border-radius:8px;
+    color:var(--text);font-family:'Inter',sans-serif;font-size:13px;padding:8px 10px;
+  }
+  .matrix-add input:focus{outline:none;border-color:var(--dawn);}
+  .matrix-add button{
+    flex:none;width:34px;border-radius:8px;border:0.5px solid var(--hairline-strong);
+    background:none;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .matrix-add button:hover{border-color:var(--dawn);color:var(--dawn);}
+  .matrix-empty{font-size:12.5px;color:var(--text-faint);padding:4px 2px 8px;}
+
+  @media (min-width:560px){
+    .matrix-grid{grid-template-columns:1fr 1fr;}
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <div class="storage-warning" id="storageWarning">
+    ⚠️ Не удалось сохранить данные. Проверьте, что в Safari выключен приватный режим («Private Browsing») — в нём сайты не могут ничего запоминать.
+  </div>
   <header>
     <div class="ring-holder">
       <svg width="88" height="88" viewBox="0 0 88 88">
@@ -190,6 +268,19 @@
 
   <div class="journal">
     <div class="journal-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0L12 5.35l-.77-.77a5.4 5.4 0 0 0-7.65 7.65L12 20.23l8.42-8.42a5.4 5.4 0 0 0 0-7.23z"/></svg>
+      <h2>Дневник благодарности</h2>
+    </div>
+    <div class="journal-sub">За что сегодня благодарен(на) — людям, моментам, себе</div>
+    <div class="journal-form">
+      <textarea id="gratitudeInput" placeholder="Я благодарен(на) за…"></textarea>
+      <div class="form-actions"><button class="btn primary" id="gratitudeAdd">Записать</button></div>
+    </div>
+    <div class="journal-entries" id="gratitudeList"></div>
+  </div>
+
+  <div class="journal">
+    <div class="journal-head">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M17 3H7a2 2 0 0 0-2 2v9a5 5 0 0 0 10 0V5a2 2 0 0 0-2-2z"/></svg>
       <h2>Дневник успеха</h2>
     </div>
@@ -213,17 +304,66 @@
     </div>
     <div class="journal-entries" id="ideaList"></div>
   </div>
+
+  <div class="section">
+    <div class="section-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>
+      <h2>Статистика</h2>
+    </div>
+    <div class="section-sub">Как проходит неделя — накапливается автоматически</div>
+    <div class="stats-card">
+      <div class="stats-row" id="statsRow"></div>
+      <div class="stats-summary">
+        <div class="stats-summary-item">
+          <div class="stats-summary-num" id="statAvg">0%</div>
+          <div class="stats-summary-label">Среднее за 7 дней</div>
+        </div>
+        <div class="stats-summary-item">
+          <div class="stats-summary-num" id="statStreak">0</div>
+          <div class="stats-summary-label">Дней подряд на 100%</div>
+        </div>
+        <div class="stats-summary-item">
+          <div class="stats-summary-num" id="statBest">0%</div>
+          <div class="stats-summary-label">Лучший день (7 дн.)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M12 3v18M3 12h18"/></svg>
+      <h2>Матрица приоритетов</h2>
+    </div>
+    <div class="section-sub">По методу Эйзенхауэра — что делать сегодня, а что отпустить. Обновляется каждое утро</div>
+    <div class="matrix-grid" id="matrixGrid"></div>
+  </div>
 </div>
 
 <script>
+function showStorageWarning(){
+  const el = document.getElementById('storageWarning');
+  if(el) el.classList.add('show');
+}
+
 const storage = {
   async get(key){
-    const v = localStorage.getItem(key);
-    return v === null ? null : { key, value: v };
+    try{
+      const v = localStorage.getItem(key);
+      return v === null ? null : { key, value: v };
+    }catch(e){
+      showStorageWarning();
+      return null;
+    }
   },
   async set(key, value){
-    localStorage.setItem(key, value);
-    return { key, value };
+    try{
+      localStorage.setItem(key, value);
+      return { key, value };
+    }catch(e){
+      showStorageWarning();
+      return null;
+    }
   }
 };
 
@@ -286,6 +426,20 @@ async function loadToday(){
 async function saveToday(){
   try{ await storage.set(dateKey, JSON.stringify(today)); }
   catch(e){ console.error('Не удалось сохранить прогресс дня', e); }
+  await recordHistory();
+}
+
+async function recordHistory(){
+  const total = habits.length;
+  const done = habits.filter(isDone).length;
+  let history = {};
+  try{
+    const res = await storage.get('history');
+    history = res ? JSON.parse(res.value) : {};
+  }catch(e){ history = {}; }
+  history[dateKey] = { done, total };
+  try{ await storage.set('history', JSON.stringify(history)); }
+  catch(e){ console.error('Не удалось сохранить статистику', e); }
 }
 
 function isDone(h){
@@ -361,6 +515,62 @@ async function toggle(h){
   }
   await saveToday();
   render();
+  renderStats();
+}
+
+function shortDay(d){
+  const days = ['вс','пн','вт','ср','чт','пт','сб'];
+  return days[d.getDay()];
+}
+
+async function renderStats(){
+  let history = {};
+  try{
+    const res = await storage.get('history');
+    history = res ? JSON.parse(res.value) : {};
+  }catch(e){ history = {}; }
+
+  const days = [];
+  for(let i = 6; i >= 0; i--){
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    const rec = history[key];
+    const pct = rec && rec.total ? Math.round((rec.done/rec.total)*100) : (key === dateKey ? Math.round((habits.filter(isDone).length/(habits.length||1))*100) : 0);
+    days.push({ key, label: shortDay(d), pct });
+  }
+
+  const row = document.getElementById('statsRow');
+  row.innerHTML = '';
+  days.forEach(day => {
+    const col = document.createElement('div');
+    col.className = 'stats-bar-col';
+    const bar = document.createElement('div');
+    bar.className = 'stats-bar';
+    bar.style.height = '100%';
+    const fill = document.createElement('div');
+    fill.className = 'stats-bar-fill';
+    fill.style.height = day.pct + '%';
+    bar.appendChild(fill);
+    const label = document.createElement('div');
+    label.className = 'stats-bar-label';
+    label.textContent = day.label;
+    col.appendChild(bar);
+    col.appendChild(label);
+    row.appendChild(col);
+  });
+
+  const avg = Math.round(days.reduce((s,d) => s + d.pct, 0) / days.length);
+  const best = Math.max(...days.map(d => d.pct));
+  document.getElementById('statAvg').textContent = avg + '%';
+  document.getElementById('statBest').textContent = best + '%';
+
+  let streak = 0;
+  for(let i = days.length - 1; i >= 0; i--){
+    if(days[i].pct === 100) streak++;
+    else break;
+  }
+  document.getElementById('statStreak').textContent = streak;
 }
 
 function updateProgress(){
@@ -414,7 +624,10 @@ function setupAddForm(){
   });
 }
 
-let journals = { success: [], idea: [] };
+let journals = { success: [], idea: [], gratitude: [] };
+const journalListIds = { success: 'successList', idea: 'ideaList', gratitude: 'gratitudeList' };
+const journalInputIds = { success: 'successInput', idea: 'ideaInput', gratitude: 'gratitudeInput' };
+const journalBtnIds = { success: 'successAdd', idea: 'ideaAdd', gratitude: 'gratitudeAdd' };
 
 async function loadJournal(kind){
   try{
@@ -431,7 +644,7 @@ async function saveJournal(kind){
 }
 
 function renderJournal(kind){
-  const el = document.getElementById(kind === 'success' ? 'successList' : 'ideaList');
+  const el = document.getElementById(journalListIds[kind]);
   const entries = journals[kind];
   if(entries.length === 0){
     el.innerHTML = '<div class="empty">Записей пока нет.</div>';
@@ -470,10 +683,8 @@ function renderJournal(kind){
 }
 
 function setupJournal(kind){
-  const inputId = kind === 'success' ? 'successInput' : 'ideaInput';
-  const btnId = kind === 'success' ? 'successAdd' : 'ideaAdd';
-  const input = document.getElementById(inputId);
-  const btn = document.getElementById(btnId);
+  const input = document.getElementById(journalInputIds[kind]);
+  const btn = document.getElementById(journalBtnIds[kind]);
   btn.onclick = async () => {
     const text = input.value.trim();
     if(!text){ input.focus(); return; }
@@ -484,6 +695,113 @@ function setupJournal(kind){
   };
 }
 
+const MATRIX_QUADS = [
+  { id:'q1', title:'Срочно и важно', sub:'Делать сейчас', color:'#C2705A' },
+  { id:'q2', title:'Важно, но не срочно', sub:'Планировать', color:'#3DDC84' },
+  { id:'q3', title:'Срочно, но не важно', sub:'Делегировать или сократить', color:'#D9A441' },
+  { id:'q4', title:'Не срочно и не важно', sub:'Отпустить', color:'#66635C' }
+];
+
+let matrix = { q1:[], q2:[], q3:[], q4:[] };
+
+async function loadMatrix(){
+  try{
+    const res = await storage.get('matrix:' + dateKey);
+    matrix = res ? JSON.parse(res.value) : { q1:[], q2:[], q3:[], q4:[] };
+  }catch(e){
+    matrix = { q1:[], q2:[], q3:[], q4:[] };
+  }
+}
+
+async function saveMatrix(){
+  try{ await storage.set('matrix:' + dateKey, JSON.stringify(matrix)); }
+  catch(e){ console.error('Не удалось сохранить матрицу приоритетов', e); }
+}
+
+function renderMatrix(){
+  const grid = document.getElementById('matrixGrid');
+  grid.innerHTML = '';
+  MATRIX_QUADS.forEach(q => {
+    const card = document.createElement('div');
+    card.className = 'matrix-quad';
+    card.style.setProperty('--q-color', q.color);
+
+    const h3 = document.createElement('h3');
+    h3.textContent = q.title;
+    const sub = document.createElement('div');
+    sub.className = 'matrix-sub';
+    sub.textContent = q.sub;
+    card.appendChild(h3);
+    card.appendChild(sub);
+
+    const list = document.createElement('div');
+    list.className = 'matrix-list';
+    const tasks = matrix[q.id] || [];
+    if(tasks.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'matrix-empty';
+      empty.textContent = 'Пока пусто';
+      list.appendChild(empty);
+    }
+    tasks.forEach(t => {
+      const row = document.createElement('div');
+      row.className = 'matrix-task' + (t.done ? ' done' : '');
+
+      const check = document.createElement('button');
+      check.className = 'matrix-check';
+      check.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      check.onclick = async () => {
+        t.done = !t.done;
+        await saveMatrix();
+        renderMatrix();
+      };
+
+      const text = document.createElement('div');
+      text.className = 'matrix-task-text';
+      text.textContent = t.text;
+      text.onclick = check.onclick;
+
+      const remove = document.createElement('button');
+      remove.className = 'remove-btn';
+      remove.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+      remove.onclick = async () => {
+        matrix[q.id] = matrix[q.id].filter(x => x.id !== t.id);
+        await saveMatrix();
+        renderMatrix();
+      };
+
+      row.appendChild(check);
+      row.appendChild(text);
+      row.appendChild(remove);
+      list.appendChild(row);
+    });
+    card.appendChild(list);
+
+    const addRow = document.createElement('div');
+    addRow.className = 'matrix-add';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Добавить задачу…';
+    const addBtn = document.createElement('button');
+    addBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>';
+    const doAdd = async () => {
+      const text = input.value.trim();
+      if(!text) return;
+      matrix[q.id].push({ id: q.id + Date.now(), text, done:false });
+      await saveMatrix();
+      input.value = '';
+      renderMatrix();
+    };
+    addBtn.onclick = doAdd;
+    input.addEventListener('keydown', e => { if(e.key === 'Enter') doAdd(); });
+    addRow.appendChild(input);
+    addRow.appendChild(addBtn);
+    card.appendChild(addRow);
+
+    grid.appendChild(card);
+  });
+}
+
 async function init(){
   dateKey = todayKey();
   document.getElementById('dateLabel').textContent = fmtDate(new Date());
@@ -491,13 +809,20 @@ async function init(){
   await loadToday();
   setupAddForm();
   render();
+  await renderStats();
 
   await loadJournal('success');
   await loadJournal('idea');
+  await loadJournal('gratitude');
   setupJournal('success');
   setupJournal('idea');
+  setupJournal('gratitude');
   renderJournal('success');
   renderJournal('idea');
+  renderJournal('gratitude');
+
+  await loadMatrix();
+  renderMatrix();
 }
 
 init();

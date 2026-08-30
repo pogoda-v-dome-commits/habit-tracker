@@ -1,4 +1,4 @@
-const CACHE_NAME = 'second-wind-v1';
+const CACHE_NAME = 'second-wind-v2';
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -23,8 +23,26 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Для самой страницы (HTML) — сначала пробуем сеть, чтобы обновления
+// подхватывались сразу; если сети нет, отдаём то, что есть в кэше.
+// Для остальных файлов (иконки, манифест) — кэш быстрее и достаточно.
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
-  );
+  const isHTML = event.request.mode === 'navigate' ||
+    (event.request.headers.get('accept') || '').includes('text/html');
+
+  if(isHTML){
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
+    );
+  } else {
+    event.respondWith(
+      caches.match(event.request).then((cached) => cached || fetch(event.request))
+    );
+  }
 });
