@@ -1,0 +1,11 @@
+{
+  "currency": "RUB",
+  "plans": [
+    { "id": "1m",  "months": 1,  "price": 399 },
+    { "id": "3m",  "months": 3,  "price": 999 },
+    { "id": "6m",  "months": 6,  "price": 1794 },
+    { "id": "12m", "months": 12, "price": 2990 }
+  ],
+  "autorenew_rule": "renew_at_current_price_same_period",
+  "_note": "Не используется фронтендом. Источник цен для будущего бэкенда/оплаты. UI витрины тарифов сознательно не делаем, пока нет оплаты."
+}
