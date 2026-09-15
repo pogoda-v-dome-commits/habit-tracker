@@ -7,7 +7,15 @@
 <link rel="manifest" href="./manifest.json">
 <link rel="icon" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./icon-192.png">
-<meta name="theme-color" content="#0F1115">
+<meta name="theme-color" content="#0F1115" id="metaThemeColor">
+<script>
+  (function(){
+    try{
+      var t = localStorage.getItem('theme-v1');
+      if(t === 'light') document.documentElement.setAttribute('data-theme','light');
+    }catch(e){}
+  })();
+</script>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Второе дыхание">
@@ -30,9 +38,29 @@
     --sage-dim: rgba(127,168,143,0.16);
     --green: #3DDC84;
     --danger: #C2705A;
+    --danger-dim: rgba(194,112,90,0.14);
+    --nav-bg: rgba(15,17,21,0.92);
     --nav-h: 64px;
     --safe-t: env(safe-area-inset-top, 0px);
     --safe-b: env(safe-area-inset-bottom, 0px);
+  }
+  :root[data-theme="light"]{
+    --ink: #FAF7F2;
+    --ink-2: #F0EBE1;
+    --ink-3: #E7E0D2;
+    --hairline: rgba(27,23,18,0.08);
+    --hairline-strong: rgba(27,23,18,0.18);
+    --text: #211D17;
+    --text-dim: #6E6656;
+    --text-faint: #A39C8C;
+    --dawn: #96650F;
+    --dawn-dim: rgba(150,101,15,0.14);
+    --sage: #3F7057;
+    --sage-dim: rgba(63,112,87,0.16);
+    --green: #1F7A46;
+    --danger: #9A3B22;
+    --danger-dim: rgba(154,59,34,0.12);
+    --nav-bg: rgba(250,247,242,0.88);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
@@ -67,7 +95,7 @@
 
   /* ---- storage warning ---- */
   .storage-warning{
-    display:none;background:rgba(194,112,90,0.14);border:0.5px solid var(--danger);
+    display:none;background:var(--danger-dim);border:0.5px solid var(--danger);
     color:var(--danger);font-size:13px;line-height:1.5;padding:12px 14px;border-radius:10px;
     margin:12px 20px 0;
   }
@@ -269,10 +297,18 @@
   .help-actions{display:flex;flex-direction:column;gap:10px;margin-top:8px;}
   .help-actions .btn{width:100%;text-align:center;}
 
+  /* ---- theme toggle ---- */
+  .theme-toggle{display:flex;gap:8px;margin-top:12px;}
+  .theme-btn{
+    flex:1;font-size:13px;font-weight:500;padding:10px 16px;
+    border-radius:8px;border:0.5px solid var(--hairline-strong);background:none;color:var(--text-dim);cursor:pointer;
+  }
+  .theme-btn.active{background:var(--dawn);border-color:var(--dawn);color:var(--ink);}
+
   /* ---- bottom nav ---- */
   .bottom-nav{
     position:fixed;left:0;right:0;bottom:0;z-index:10;
-    background:rgba(15,17,21,0.92);backdrop-filter:blur(14px);
+    background:var(--nav-bg);backdrop-filter:blur(14px);
     border-top:0.5px solid var(--hairline-strong);
     display:flex;padding-bottom:var(--safe-b);
   }
@@ -501,6 +537,14 @@
     <div class="help-block">
       <h2>Установка на телефон</h2>
       <p><b>iPhone:</b> откройте ссылку в Safari → «Поделиться» → «На экран Домой».<br><b>Android:</b> откройте ссылку в Chrome → меню (⋮) → «Установить приложение».</p>
+    </div>
+    <div class="help-block">
+      <h2>Оформление</h2>
+      <p>Выберите, как приложению выглядеть — можно переключать в любой момент.</p>
+      <div class="theme-toggle" id="themeToggle">
+        <button class="theme-btn" data-theme-choice="dark">Тёмная</button>
+        <button class="theme-btn" data-theme-choice="light">Светлая</button>
+      </div>
     </div>
     <div class="help-block">
       <h2>Резервная копия</h2>
@@ -1010,10 +1054,10 @@ function renderHabitStats(){
 
 /* ==================== matrix (persistent) ==================== */
 const MATRIX_QUADS = [
-  { id:'q1', title:'Срочно и важно', sub:'Делать сейчас', color:'#C2705A' },
-  { id:'q2', title:'Важно, но не срочно', sub:'Планировать', color:'#3DDC84' },
-  { id:'q3', title:'Срочно, но не важно', sub:'Делегировать или сократить', color:'#D9A441' },
-  { id:'q4', title:'Не срочно и не важно', sub:'Отпустить', color:'#66635C' }
+  { id:'q1', title:'Срочно и важно', sub:'Делать сейчас', color:'var(--danger)' },
+  { id:'q2', title:'Важно, но не срочно', sub:'Планировать', color:'var(--green)' },
+  { id:'q3', title:'Срочно, но не важно', sub:'Делегировать или сократить', color:'var(--dawn)' },
+  { id:'q4', title:'Не срочно и не важно', sub:'Отпустить', color:'var(--text-faint)' }
 ];
 let matrixTasks = [];
 
@@ -1139,7 +1183,32 @@ function setTab(name){
 window.setTab = setTab;
 
 /* ==================== help actions ==================== */
+/* ==================== theme ==================== */
+const THEME_COLORS = { dark:'#0F1115', light:'#FAF7F2' };
+function getTheme(){
+  return storage.get('theme-v1') === 'light' ? 'light' : 'dark';
+}
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  const meta = document.getElementById('metaThemeColor');
+  if(meta) meta.setAttribute('content', THEME_COLORS[theme]);
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.themeChoice === theme);
+  });
+}
+function setupThemeToggle(){
+  applyTheme(getTheme());
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.onclick = () => {
+      const theme = btn.dataset.themeChoice;
+      storage.set('theme-v1', theme);
+      applyTheme(theme);
+    };
+  });
+}
+
 function setupHelp(){
+  setupThemeToggle();
   document.getElementById('btnReplayIntro').onclick = () => showOnboarding(true);
   document.getElementById('btnExport').onclick = () => {
     const data = {};
