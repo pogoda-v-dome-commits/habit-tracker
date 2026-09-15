@@ -1,10 +1,14 @@
-const CACHE_NAME = 'second-wind-v3';
+const CACHE_NAME = 'second-wind-v5';
 const FILES_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './icon-512-maskable.png',
+  './legal/offer/index.html',
+  './legal/privacy/index.html',
+  './legal/terms/index.html'
 ];
 
 const OFFLINE_HTML = `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8">

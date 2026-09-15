@@ -73,6 +73,23 @@
   }
   .storage-warning.show{display:block;}
 
+  /* ---- update banner ---- */
+  .update-banner{
+    display:none;position:fixed;left:16px;right:16px;
+    bottom:calc(var(--nav-h) + var(--safe-b) + 14px);z-index:11;
+    background:var(--ink-2);border:0.5px solid var(--hairline-strong);
+    border-radius:12px;padding:12px 14px;
+    align-items:center;gap:12px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.35);
+    max-width:640px;margin:0 auto;
+  }
+  .update-banner.show{display:flex;}
+  .update-banner span{flex:1;font-size:13px;line-height:1.4;color:var(--text);}
+  .update-banner button{
+    flex:none;background:var(--dawn);color:var(--ink);border:none;border-radius:8px;
+    font-size:13px;font-weight:500;padding:8px 14px;cursor:pointer;
+  }
+
   /* ---- ring header (today tab) ---- */
   .today-head{display:flex;align-items:center;gap:20px;margin-bottom:22px;}
   .ring-holder{position:relative;width:76px;height:76px;flex:none;}
@@ -287,6 +304,25 @@
   .onboard-dot.active{background:var(--dawn);}
   .onboard-next{background:var(--dawn);color:var(--ink);border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;}
 
+  /* ---- legal consent gate ---- */
+  .consent-overlay{
+    position:fixed;inset:0;background:var(--ink);z-index:60;
+    display:flex;flex-direction:column;justify-content:center;overflow-y:auto;
+    padding:calc(28px + var(--safe-t)) 26px calc(28px + var(--safe-b));
+  }
+  .consent-body{display:flex;flex-direction:column;gap:16px;max-width:440px;margin:0 auto;width:100%;}
+  .consent-body h1{font-family:'Fraunces',serif;font-weight:500;font-size:24px;line-height:1.3;margin:0;}
+  .consent-body p{font-size:14.5px;line-height:1.6;color:var(--text-dim);margin:0;}
+  .consent-checks{display:flex;flex-direction:column;gap:12px;margin-top:6px;}
+  .consent-check{display:flex;align-items:flex-start;gap:10px;padding:12px;border:0.5px solid var(--hairline-strong);border-radius:10px;background:var(--ink-2);}
+  .consent-check input[type=checkbox]{margin-top:2px;width:18px;height:18px;flex:none;accent-color:var(--dawn);}
+  .consent-check label{font-size:13.5px;line-height:1.5;color:var(--text);}
+  .consent-check a{color:var(--dawn);}
+  .consent-terms-link{font-size:12.5px;color:var(--text-faint);text-align:center;}
+  .consent-terms-link a{color:var(--text-dim);}
+  .consent-next{background:var(--dawn);color:var(--ink);border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
+  .consent-next:disabled{background:var(--ink-3);color:var(--text-faint);cursor:not-allowed;}
+
   input[type=file]{display:none;}
 </style>
 </head>
@@ -294,6 +330,11 @@
 
 <div class="storage-warning" id="storageWarning">
   ⚠️ Не удалось сохранить данные. Проверьте, что в браузере выключен приватный режим — в нём сайты не могут ничего запоминать.
+</div>
+
+<div class="update-banner" id="updateBanner">
+  <span>Доступна новая версия</span>
+  <button id="updateBannerBtn">Обновить</button>
 </div>
 
 <header class="topbar">
@@ -398,10 +439,23 @@
       </div>
       <div class="journal-entries" id="ideaList"></div>
     </div>
+
+    <div class="journal">
+      <div class="journal-head">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg>
+        <h2>Дневник вклада</h2>
+      </div>
+      <div class="journal-sub">Что сегодня приблизило меня к цели</div>
+      <div class="journal-form">
+        <textarea id="contributionInput" placeholder="Сегодня я вложил(а)…"></textarea>
+        <div class="form-actions"><button class="btn primary" id="contributionAdd">Записать</button></div>
+      </div>
+      <div class="journal-entries" id="contributionList"></div>
+    </div>
   </section>
 
   <section class="view hidden" id="view-priorities">
-    <div class="section-sub">По методу Эйзенхауэра. Задачи не сбрасываются — завершайте, переносите между категориями или удаляйте вручную.</div>
+    <div class="section-sub">Задачи не сбрасываются — завершайте, переносите между категориями или удаляйте вручную.</div>
     <div class="matrix-grid" id="matrixGrid"></div>
   </section>
 
@@ -434,7 +488,7 @@
     </div>
     <div class="help-block">
       <h2>Как вести дневники</h2>
-      <p>Вкладка «Дневники» — три отдельных блока: благодарность, успех, идеи. Записи сохраняются навсегда и не сбрасываются утром, в отличие от чек-листа привычек.</p>
+      <p>Вкладка «Дневники» — четыре отдельных блока: благодарность, успех, идеи, вклад дня. Записи сохраняются навсегда и не сбрасываются утром, в отличие от чек-листа привычек.</p>
     </div>
     <div class="help-block">
       <h2>Как пользоваться матрицей</h2>
@@ -480,6 +534,25 @@
     <span>Статистика</span>
   </button>
 </nav>
+
+<div class="consent-overlay hidden" id="consentOverlay">
+  <div class="consent-body">
+    <h1>Прежде чем начать</h1>
+    <p>Пожалуйста, ознакомьтесь с документами и подтвердите согласие — это займёт минуту и нужно только один раз.</p>
+    <div class="consent-checks">
+      <div class="consent-check">
+        <input type="checkbox" id="consentOffer">
+        <label for="consentOffer">Я согласен(на) с условиями <a href="legal/offer/index.html" target="_blank" rel="noopener">Публичной оферты</a></label>
+      </div>
+      <div class="consent-check">
+        <input type="checkbox" id="consentPrivacy">
+        <label for="consentPrivacy">Я согласен(на) на обработку персональных данных согласно <a href="legal/privacy/index.html" target="_blank" rel="noopener">Политике конфиденциальности</a></label>
+      </div>
+    </div>
+    <div class="consent-terms-link">Также ознакомьтесь с <a href="legal/terms/index.html" target="_blank" rel="noopener">Пользовательским соглашением</a></div>
+  </div>
+  <button class="consent-next" id="consentNext" disabled>Продолжить</button>
+</div>
 
 <div class="onboard-overlay hidden" id="onboardOverlay">
   <button class="onboard-skip" id="onboardSkip">Пропустить</button>
@@ -810,10 +883,10 @@ function setupAddForm(){
 }
 
 /* ==================== journals ==================== */
-let journals = { success: [], idea: [], gratitude: [] };
-const journalListIds = { success:'successList', idea:'ideaList', gratitude:'gratitudeList' };
-const journalInputIds = { success:'successInput', idea:'ideaInput', gratitude:'gratitudeInput' };
-const journalBtnIds = { success:'successAdd', idea:'ideaAdd', gratitude:'gratitudeAdd' };
+let journals = { success: [], idea: [], gratitude: [], contribution: [] };
+const journalListIds = { success:'successList', idea:'ideaList', gratitude:'gratitudeList', contribution:'contributionList' };
+const journalInputIds = { success:'successInput', idea:'ideaInput', gratitude:'gratitudeInput', contribution:'contributionInput' };
+const journalBtnIds = { success:'successAdd', idea:'ideaAdd', gratitude:'gratitudeAdd', contribution:'contributionAdd' };
 
 function loadJournal(kind){
   const raw = storage.get('journal-'+kind);
@@ -1100,6 +1173,36 @@ function setupHelp(){
   };
 }
 
+/* ==================== legal consent ==================== */
+// Client-side only for now (no backend to persist to yet, see project plan) —
+// records the same facts (accepted, timestamp, doc version) the future backend
+// consent table should store, so migrating this into it later is a straight copy.
+function needsLegalConsent(){
+  return !storage.get('legal-consent-v1');
+}
+function showLegalConsent(onDone){
+  const overlay = document.getElementById('consentOverlay');
+  const offer = document.getElementById('consentOffer');
+  const privacy = document.getElementById('consentPrivacy');
+  const nextBtn = document.getElementById('consentNext');
+  overlay.classList.remove('hidden');
+
+  function refresh(){ nextBtn.disabled = !(offer.checked && privacy.checked); }
+  offer.addEventListener('change', refresh);
+  privacy.addEventListener('change', refresh);
+
+  nextBtn.onclick = () => {
+    if(!offer.checked || !privacy.checked) return;
+    const now = new Date().toISOString();
+    storage.set('legal-consent-v1', JSON.stringify({
+      offer: { accepted:true, acceptedAt: now, version:'v1' },
+      privacy: { accepted:true, acceptedAt: now, version:'v1' }
+    }));
+    overlay.classList.add('hidden');
+    onDone();
+  };
+}
+
 /* ==================== onboarding ==================== */
 function needsOnboarding(){
   return !storage.get('habits-list-v2') && !storage.get('habits-list');
@@ -1177,9 +1280,9 @@ function startApp(){
   setupAddForm();
   render();
 
-  loadJournal('success'); loadJournal('idea'); loadJournal('gratitude');
-  setupJournal('success'); setupJournal('idea'); setupJournal('gratitude');
-  renderJournal('success'); renderJournal('idea'); renderJournal('gratitude');
+  loadJournal('success'); loadJournal('idea'); loadJournal('gratitude'); loadJournal('contribution');
+  setupJournal('success'); setupJournal('idea'); setupJournal('gratitude'); setupJournal('contribution');
+  renderJournal('success'); renderJournal('idea'); renderJournal('gratitude'); renderJournal('contribution');
 
   loadMatrixTasks();
   setupHelp();
@@ -1190,19 +1293,55 @@ function init(){
   dateKey = todayKey();
   todayDate = new Date();
   loadHabits();
-  if(needsOnboarding()){
-    showOnboarding(false);
+
+  const proceedPastConsent = () => {
+    if(needsOnboarding()){
+      showOnboarding(false);
+    } else {
+      if(!habits) habits = defaultHabits(), saveHabits();
+      startApp();
+    }
+  };
+
+  if(needsLegalConsent()){
+    showLegalConsent(proceedPastConsent);
   } else {
-    if(!habits) habits = defaultHabits(), saveHabits();
-    startApp();
+    proceedPastConsent();
   }
 }
 init();
 
+/* ==================== quiet auto-update ==================== */
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./service-worker.js').catch(console.error);
+    navigator.serviceWorker.register('./service-worker.js').then((registration) => {
+      // Long-open tabs don't get re-checked by the browser on their own —
+      // nudge it periodically and whenever the tab becomes visible again.
+      setInterval(() => registration.update(), 60 * 60 * 1000);
+      document.addEventListener('visibilitychange', () => {
+        if(document.visibilityState === 'visible') registration.update();
+      });
+
+      registration.addEventListener('updatefound', () => {
+        const installing = registration.installing;
+        if(!installing) return;
+        installing.addEventListener('statechange', () => {
+          // A controller already existing means this is an update, not the first install —
+          // only then do we bother the user, and only with a dismissible banner, never a forced reload.
+          if(installing.state === 'installed' && navigator.serviceWorker.controller){
+            showUpdateBanner();
+          }
+        });
+      });
+    }).catch(console.error);
   });
+}
+
+function showUpdateBanner(){
+  const el = document.getElementById('updateBanner');
+  if(!el) return;
+  el.classList.add('show');
+  document.getElementById('updateBannerBtn').onclick = () => location.reload();
 }
 </script>
 </body>
