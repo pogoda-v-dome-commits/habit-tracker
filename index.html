@@ -189,7 +189,7 @@
   .chip.selected{border-color:var(--dawn);color:var(--dawn);background:var(--dawn-dim);}
   .edit-actions{display:flex;gap:8px;justify-content:flex-end;}
   .btn{
-    font-size:13px;font-weight:500;padding:9px 16px;
+    display:inline-block;font-size:13px;font-weight:500;padding:9px 16px;text-decoration:none;
     border-radius:8px;border:0.5px solid var(--hairline-strong);background:none;color:var(--text-dim);cursor:pointer;
   }
   .btn.primary{background:var(--dawn);border-color:var(--dawn);color:var(--ink);}
@@ -537,6 +537,15 @@
     <div class="help-block">
       <h2>Установка на телефон</h2>
       <p><b>iPhone:</b> откройте ссылку в Safari → «Поделиться» → «На экран Домой».<br><b>Android:</b> откройте ссылку в Chrome → меню (⋮) → «Установить приложение».</p>
+    </div>
+    <div class="help-block">
+      <h2>Документы</h2>
+      <p>Публичная оферта, политика конфиденциальности и пользовательское соглашение сервиса.</p>
+      <div class="help-actions">
+        <a class="btn" href="legal/offer/index.html" target="_blank" rel="noopener">Публичная оферта</a>
+        <a class="btn" href="legal/privacy/index.html" target="_blank" rel="noopener">Политика конфиденциальности</a>
+        <a class="btn" href="legal/terms/index.html" target="_blank" rel="noopener">Пользовательское соглашение</a>
+      </div>
     </div>
     <div class="help-block">
       <h2>Оформление</h2>
