@@ -359,6 +359,19 @@
   .consent-next{background:var(--dawn);color:var(--ink);border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;}
   .consent-next:disabled{background:var(--ink-3);color:var(--text-faint);cursor:not-allowed;}
 
+  /* ---- trial lock ---- */
+  .trial-overlay{
+    position:fixed;inset:0;background:var(--ink);z-index:70;
+    display:flex;flex-direction:column;justify-content:center;overflow-y:auto;
+    padding:calc(28px + var(--safe-t)) 26px calc(28px + var(--safe-b));
+  }
+  .trial-body{display:flex;flex-direction:column;gap:16px;max-width:440px;margin:0 auto;width:100%;}
+  .trial-body h1{font-family:'Fraunces',serif;font-weight:500;font-size:24px;line-height:1.3;margin:0;}
+  .trial-body p{font-size:14.5px;line-height:1.6;color:var(--text-dim);margin:0;}
+  .trial-cta{background:var(--dawn);color:var(--ink);border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;margin-top:8px;}
+  .trial-cta.secondary{background:none;border:0.5px solid var(--hairline-strong);color:var(--text);font-weight:500;}
+  .trial-export{background:none;border:0.5px solid var(--hairline-strong);color:var(--text-dim);border-radius:10px;padding:12px;font-size:13px;cursor:pointer;}
+
   input[type=file]{display:none;}
 </style>
 </head>
@@ -605,6 +618,17 @@
     <div class="consent-terms-link">Также ознакомьтесь с <a href="legal/terms/index.html" target="_blank" rel="noopener">Пользовательским соглашением</a></div>
   </div>
   <button class="consent-next" id="consentNext" disabled>Продолжить</button>
+</div>
+
+<div class="trial-overlay hidden" id="trialOverlay">
+  <div class="trial-body">
+    <h1>Пробный период закончился</h1>
+    <p>Вы пользовались «Вторым дыханием» бесплатно последние 7 дней. Чтобы продолжить — напишите мне, и я подключу оплату.</p>
+    <a class="trial-cta" href="https://www.instagram.com/akramishmukhamedov/" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;">Напишите мне в Instagram: @akramishmukhamedov</a>
+    <a class="trial-cta secondary" href="https://t.me/ChinaB2B_Russia" target="_blank" rel="noopener" style="display:block;text-align:center;text-decoration:none;">Или в Telegram: @ChinaB2B_Russia</a>
+    <p>Все ваши записи никуда не делись — они останутся на телефоне и снова станут доступны после оплаты.</p>
+    <button class="trial-export" id="trialExportBtn">Экспортировать мои данные на всякий случай</button>
+  </div>
 </div>
 
 <div class="onboard-overlay hidden" id="onboardOverlay">
@@ -1212,18 +1236,20 @@ function setupThemeToggle(){
   });
 }
 
+function exportBackup(){
+  const data = {};
+  storage.keys().forEach(k => { data[k] = localStorage.getItem(k); });
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'vtoroe-dyhanie-backup-' + todayKey() + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+
 function setupHelp(){
   setupThemeToggle();
   document.getElementById('btnReplayIntro').onclick = () => showOnboarding(true);
-  document.getElementById('btnExport').onclick = () => {
-    const data = {};
-    storage.keys().forEach(k => { data[k] = localStorage.getItem(k); });
-    const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'vtoroe-dyhanie-backup-' + todayKey() + '.json';
-    document.body.appendChild(a); a.click(); a.remove();
-  };
+  document.getElementById('btnExport').onclick = exportBackup;
   document.getElementById('btnImport').onclick = () => document.getElementById('importFile').click();
   document.getElementById('importFile').addEventListener('change', (e) => {
     const file = e.target.files[0]; if(!file) return;
@@ -1275,6 +1301,27 @@ function showLegalConsent(onDone){
     overlay.classList.add('hidden');
     onDone();
   };
+}
+
+/* ==================== trial lock ==================== */
+// Client-side only, same as legal consent — bypassable by clearing browser
+// data, but good enough for a closed group of testers found via DM/Reels
+// while there's no backend/accounts to enforce it properly (see project plan).
+const TRIAL_DAYS = 7;
+function ensureTrialStarted(){
+  if(!storage.get('trial-start-v1')){
+    storage.set('trial-start-v1', String(Date.now()));
+  }
+}
+function isTrialExpired(){
+  const start = Number(storage.get('trial-start-v1'));
+  if(!start) return false;
+  const days = (Date.now() - start) / (1000*60*60*24);
+  return days >= TRIAL_DAYS;
+}
+function showTrialLock(){
+  document.getElementById('trialOverlay').classList.remove('hidden');
+  document.getElementById('trialExportBtn').onclick = exportBackup;
 }
 
 /* ==================== onboarding ==================== */
@@ -1369,6 +1416,11 @@ function init(){
   loadHabits();
 
   const proceedPastConsent = () => {
+    ensureTrialStarted();
+    if(isTrialExpired()){
+      showTrialLock();
+      return;
+    }
     if(needsOnboarding()){
       showOnboarding(false);
     } else {
