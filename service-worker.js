@@ -1,4 +1,4 @@
-const CACHE_NAME = 'second-wind-v7';
+const CACHE_NAME = 'second-wind-v8';
 const FILES_TO_CACHE = [
   './',
   './index.html',
@@ -6,7 +6,6 @@ const FILES_TO_CACHE = [
   './icon-192.png',
   './icon-512.png',
   './icon-512-maskable.png',
-  './legal/offer/index.html',
   './legal/privacy/index.html',
   './legal/terms/index.html'
 ];
