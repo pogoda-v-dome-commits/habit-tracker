@@ -1,4 +1,4 @@
-const CACHE_NAME = 'second-wind-v11';
+const CACHE_NAME = 'second-wind-v12';
 const FILES_TO_CACHE = [
   './',
   './index.html',

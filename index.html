@@ -139,7 +139,7 @@
   .reminder-status{font-size:12.5px;color:var(--text-dim);line-height:1.5;margin-top:10px;}
 
   /* ---- voice input, toast, modal ---- */
-  .mic-wrap{position:relative;display:block;min-width:0;}
+  .mic-wrap{position:relative;display:block;min-width:0;width:100%;}
   .mic-wrap > input, .mic-wrap > textarea{display:block;width:100%;padding-right:46px !important;}
   .mic-wrap > .mic-inline{
     position:absolute;right:6px;flex:none;width:32px;height:32px;padding:0;border-radius:50%;border:none;background:none;
@@ -179,6 +179,14 @@
   .modal-card li b{color:var(--text);font-weight:600;}
   .modal-actions{display:flex;gap:8px;margin-top:16px;}
   .modal-actions .btn{flex:1;text-align:center;padding:12px 16px;}
+  .mission-note{
+    position:fixed;left:16px;right:16px;max-width:420px;margin:0 auto;top:calc(var(--safe-t) + 72px);z-index:35;
+    background:var(--ink-2);border:0.5px solid var(--hairline-strong);border-radius:12px;padding:12px 16px;
+    font-size:13.5px;line-height:1.5;color:var(--text);box-shadow:0 8px 24px rgba(0,0,0,0.25);cursor:pointer;
+    opacity:0;transform:translateY(-8px);transition:opacity .35s, transform .35s;
+  }
+  .mission-note.show{opacity:1;transform:none;}
+  @media (prefers-reduced-motion: reduce){ .mission-note{transition:none;} }
 
   /* ---- main action ---- */
   .main-action{
@@ -186,11 +194,13 @@
     padding:12px 14px;margin-bottom:20px;
   }
   .main-action label{display:block;font-size:11.5px;color:var(--dawn);text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px;}
-  .main-action input{
-    width:100%;background:none;border:none;color:var(--text);font-size:14.5px;padding:0;
+  .main-action textarea{
+    display:block;width:100%;background:none;border:none;color:var(--text);font-family:inherit;
+    font-size:14.5px;line-height:1.4;padding:0;resize:none;overflow:hidden;min-height:20px;
   }
-  .main-action input:focus{outline:none;}
-  .main-action input::placeholder{color:var(--text-faint);}
+  .main-action textarea:focus{outline:none;}
+  .main-action textarea::placeholder{color:var(--text-faint);}
+  .main-action .mic-wrap.is-area > .mic-inline{top:-6px;}
 
   /* ---- habit list ---- */
   .list{display:flex;flex-direction:column;gap:1px;background:var(--hairline);border-radius:14px;overflow:hidden;border:0.5px solid var(--hairline-strong);margin-bottom:14px;}
@@ -211,10 +221,11 @@
   .item.done .item-title{color:var(--text-dim);text-decoration:line-through;text-decoration-color:var(--text-faint);}
   .item-meta{font-size:11px;color:var(--text-faint);margin-top:3px;font-family:'IBM Plex Mono',monospace;}
   .item-note{
-    width:100%;margin-top:8px;background:var(--ink-3);border:0.5px solid var(--hairline-strong);
+    width:100%;background:var(--ink-3);border:0.5px solid var(--hairline-strong);
     border-radius:8px;color:var(--text);font-family:'Inter',sans-serif;font-size:13px;
     padding:8px 10px;resize:none;min-height:36px;line-height:1.5;
   }
+  .item-note-row{padding:0 14px 14px;}
   .item-note::placeholder{color:var(--text-faint);}
   .item-note:focus{outline:none;border-color:var(--dawn);}
   .item-actions{flex:none;display:flex;gap:2px;}
@@ -430,7 +441,7 @@
 
     <div class="main-action">
       <label>Главное дело сегодня</label>
-      <input type="text" id="mainActionInput" placeholder="Одно дело, которое важнее остального…">
+      <textarea id="mainActionInput" rows="1" placeholder="Одно дело, которое важнее остального…"></textarea>
     </div>
 
     <div class="list" id="list"></div>
@@ -777,6 +788,7 @@ function render(){
     meta.textContent = metaText;
     body.appendChild(meta);
 
+    let noteTa = null;
     if(h.type === 'note'){
       const ta = document.createElement('textarea');
       ta.className = 'item-note';
@@ -784,7 +796,7 @@ function render(){
       ta.value = typeof dayRecord[h.id] === 'string' ? dayRecord[h.id] : '';
       ta.disabled = h.enabled===false || !scheduled;
       ta.addEventListener('change', () => { dayRecord[h.id] = ta.value; saveDayRecord(); render(); renderStats(); });
-      body.appendChild(ta);
+      noteTa = ta;
     }
 
     const actions = document.createElement('div');
@@ -806,6 +818,14 @@ function render(){
     row.appendChild(actions);
     item.appendChild(row);
 
+    // the note spans the whole row, under the title and the action icons
+    if(noteTa){
+      const noteRow = document.createElement('div');
+      noteRow.className = 'item-note-row';
+      noteRow.appendChild(noteTa);
+      item.appendChild(noteRow);
+    }
+
     if(editingId === h.id){
       item.appendChild(buildEditRow(h));
     }
@@ -816,6 +836,7 @@ function render(){
 
   const mainInput = document.getElementById('mainActionInput');
   mainInput.value = dayRecord.__main || '';
+  autoGrow(mainInput);
 }
 
 function iconBtn(kind, onClick, danger){
@@ -1028,9 +1049,12 @@ function setupAddForm(){
   };
   titleInput.addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('confirmAdd').click(); });
 
-  document.getElementById('mainActionInput').addEventListener('change', (e) => {
+  const mainInput = document.getElementById('mainActionInput');
+  mainInput.addEventListener('change', (e) => {
     dayRecord.__main = e.target.value; saveDayRecord();
   });
+  // the field wraps onto several lines, Enter just finishes editing
+  mainInput.addEventListener('keydown', e => { if(e.key === 'Enter'){ e.preventDefault(); mainInput.blur(); } });
 }
 
 /* ==================== journals ==================== */
@@ -1067,6 +1091,7 @@ function setupJournal(kind){
     journals[kind].push({ id:kind+Date.now(), text, dateLabel: fmtDate(new Date()), dateKey: todayKey() });
     saveJournal(kind);
     input.value='';
+    autoGrow(input);
     renderJournal(kind);
   };
 }
@@ -1285,6 +1310,7 @@ function setTab(name){
   document.getElementById('topbarTitle').textContent = TAB_TITLES[name] || 'Второе дыхание';
   if(name==='stats') renderStats();
   if(name==='priorities') renderMatrix();
+  growAll();
   window.scrollTo(0,0);
 }
 window.setTab = setTab;
@@ -1325,7 +1351,7 @@ function showModal({title, html, primary, secondary, onPrimary, onSecondary}){
 const WHATS_NEW_VERSION = '2026-10-b';
 function markWhatsNewSeen(){ storage.set('whatsnew-seen', WHATS_NEW_VERSION); }
 function maybeShowWhatsNew(){
-  if(storage.get('whatsnew-seen') === WHATS_NEW_VERSION) return;
+  if(storage.get('whatsnew-seen') === WHATS_NEW_VERSION) return false;
   showModal({
     title: 'Стало удобнее',
     html: '<p>Все ваши записи на месте, ничего не потерялось. Вот что нового:</p>' +
@@ -1339,6 +1365,25 @@ function maybeShowWhatsNew(){
     primary: 'Понятно',
     onPrimary: markWhatsNewSeen
   });
+  return true;
+}
+
+// Shown at every launch: a quiet card that fades by itself (or on tap), never blocks the screen
+function showMissionNote(){
+  const el = document.createElement('div');
+  el.className = 'mission-note';
+  el.setAttribute('role', 'status');
+  el.textContent = 'Мы делаем всё, чтобы вам было удобнее. Наша миссия — чтобы ваша жизнь становилась лучше, шаг за шагом.';
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('show'));
+  let gone = false;
+  const hide = () => {
+    if(gone) return; gone = true;
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 400);
+  };
+  el.addEventListener('click', hide);
+  setTimeout(hide, 6000);
 }
 
 /* ==================== voice input ==================== */
@@ -1350,6 +1395,17 @@ function voiceErrorText(code){
   if(code === 'no-speech') return 'Не расслышал. Нажмите на микрофон и повторите.';
   return 'Не получилось включить голосовой ввод. Нажмите микрофон на клавиатуре телефона.';
 }
+// Multi-line fields grow with their text (up to a cap, then scroll), so nothing typed or dictated is hidden
+function autoGrow(el){
+  if(!el || el.tagName !== 'TEXTAREA' || el.offsetParent === null) return;
+  el.style.height = 'auto';
+  const max = 220, border = el.offsetHeight - el.clientHeight;
+  el.style.height = Math.min(el.scrollHeight + border, max) + 'px';
+  el.style.overflowY = el.scrollHeight + border > max ? 'auto' : 'hidden';
+}
+function growAll(){ document.querySelectorAll('textarea').forEach(autoGrow); }
+window.addEventListener('resize', growAll);
+
 function setupVoiceInput(){
   const MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
   let rec = null, activeBtn = null, pending = null;
@@ -1358,25 +1414,33 @@ function setupVoiceInput(){
     const SR = getSpeechRecognition();
     if(!SR) return;
     const base = field.value;
-    let gotText = false, failed = false;
+    let gotText = false, failed = false, finalText = '';
     activeBtn = btn;
     btn.classList.add('listening');
     rec = new SR();
     rec.lang = 'ru-RU';
     rec.interimResults = true;
-    rec.continuous = false;
-    rec.onstart = () => showToast('Говорите…');
+    // keeps listening through pauses; the user ends it by tapping the mic again
+    rec.continuous = true;
+    rec.onstart = () => showToast('Говорите. Чтобы закончить, нажмите на микрофон ещё раз.', 4000);
     rec.onresult = e => {
-      let text = '';
-      for(let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
-      text = text.trim();
+      // only the results that changed, finals accumulated: avoids the repeated or glued text some browsers produce
+      let interim = '';
+      for(let i = e.resultIndex; i < e.results.length; i++){
+        const r = e.results[i], t = r[0].transcript;
+        if(r.isFinal) finalText += ' ' + t; else interim += ' ' + t;
+      }
+      let text = (finalText + interim).replace(/\s+/g, ' ').trim();
       if(!text) return;
       gotText = true;
       if(!base) text = text.charAt(0).toUpperCase() + text.slice(1);
       field.value = base + (base && !/\s$/.test(base) ? ' ' : '') + text;
       field.dispatchEvent(new Event('input', {bubbles:true}));
     };
-    rec.onerror = e => { failed = true; showToast(voiceErrorText(e.error), 4500); };
+    rec.onerror = e => {
+      if(e.error === 'aborted') return;
+      failed = true; showToast(voiceErrorText(e.error), 4500);
+    };
     rec.onend = () => {
       btn.classList.remove('listening');
       activeBtn = null; rec = null;
@@ -1417,6 +1481,10 @@ function setupVoiceInput(){
     if(!isArea && !(field.tagName === 'INPUT' && field.type === 'text')) return;
     if(field.dataset.mic) return;
     field.dataset.mic = '1';
+    if(isArea){
+      field.addEventListener('input', () => autoGrow(field));
+      field.addEventListener('focus', () => autoGrow(field));
+    }
     const cs = getComputedStyle(field);
     const wrap = document.createElement('div');
     wrap.className = 'mic-wrap ' + (isArea ? 'is-area' : 'is-input');
@@ -1433,6 +1501,7 @@ function setupVoiceInput(){
     btn.addEventListener('mousedown', e => e.preventDefault());
     btn.addEventListener('click', () => onMicClick(field, btn));
     wrap.appendChild(btn);
+    if(isArea) autoGrow(field);
   }
   function scan(root){
     if(root.matches && root.matches('textarea, input[type=text]')) attach(root);
@@ -1603,7 +1672,7 @@ function init(){
   } else {
     if(!habits) habits = defaultHabits(), saveHabits();
     startApp();
-    maybeShowWhatsNew();
+    if(!maybeShowWhatsNew()) showMissionNote();
   }
 }
 init();
