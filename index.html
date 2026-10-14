@@ -139,16 +139,24 @@
   .reminder-status{font-size:12.5px;color:var(--text-dim);line-height:1.5;margin-top:10px;}
 
   /* ---- voice input, toast, modal ---- */
-  .mic-btn{
-    position:fixed;z-index:30;width:36px;height:36px;padding:0;border-radius:50%;
-    border:0.5px solid var(--hairline-strong);background:var(--ink-3);color:var(--text-dim);
-    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  .mic-wrap{position:relative;display:block;min-width:0;}
+  .mic-wrap > input, .mic-wrap > textarea{display:block;width:100%;padding-right:46px !important;}
+  .mic-wrap > .mic-inline{
+    position:absolute;right:6px;flex:none;width:32px;height:32px;padding:0;border-radius:50%;border:none;background:none;
+    color:var(--text-dim);display:flex;align-items:center;justify-content:center;cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
   }
-  .mic-btn svg{width:18px;height:18px;}
-  .mic-btn.listening{background:var(--danger);border-color:var(--danger);color:#fff;animation:micPulse 1.2s ease-in-out infinite;}
+  .mic-wrap.is-input > .mic-inline{top:50%;margin-top:-16px;}
+  .mic-wrap.is-area > .mic-inline{top:6px;}
+  .mic-wrap > .mic-inline svg{width:18px;height:18px;}
+  .mic-wrap > .mic-inline:active{background:var(--ink-3);}
+  .mic-wrap > .mic-inline.listening{background:var(--danger);color:#fff;animation:micPulse 1.2s ease-in-out infinite;}
   @keyframes micPulse{0%,100%{box-shadow:0 0 0 0 var(--danger-dim);}50%{box-shadow:0 0 0 8px transparent;}}
-  @media (prefers-reduced-motion: reduce){ .mic-btn.listening{animation:none;} }
-  .mic-pad{padding-right:52px !important;}
+  @media (prefers-reduced-motion: reduce){ .mic-wrap > .mic-inline.listening{animation:none;} }
+  /* iOS zooms the whole page when a field with text smaller than 16px gets focus, which shifts everything sideways */
+  @media (pointer:coarse){
+    input[type=text], input[type=time], textarea{font-size:16px !important;}
+  }
   .toast{
     position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + var(--safe-b) + 18px);
     width:max-content;max-width:calc(100% - 32px);z-index:40;
@@ -463,7 +471,7 @@
   </section>
 
   <section class="view hidden" id="view-journals">
-    <div class="journal-hint">Совет: чтобы наговорить запись, нажмите на поле и на значок микрофона рядом с ним. Можно и микрофоном на клавиатуре телефона.</div>
+    <div class="journal-hint">Совет: чтобы наговорить запись, нажмите на значок микрофона справа в поле. Можно и микрофоном на клавиатуре телефона.</div>
     <div class="journal">
       <div class="journal-head">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0L12 5.35l-.77-.77a5.4 5.4 0 0 0-7.65 7.65L12 20.23l8.42-8.42a5.4 5.4 0 0 0 0-7.23z"/></svg>
@@ -538,6 +546,23 @@
 
   <section class="view hidden" id="view-help">
     <div class="help-block">
+      <h2>Напоминание</h2>
+      <p>Выберите время, и телефон будет напоминать отметить привычки каждый день. Напоминание создаётся в календаре телефона, поэтому работает, даже когда приложение закрыто.</p>
+      <div class="reminder-row">
+        <input type="time" id="reminderTime" value="09:00">
+        <button class="btn" id="reminderBtn">Добавить в календарь</button>
+      </div>
+      <div class="reminder-status" id="reminderStatus">Если календарь не открылся, поставьте повторяющееся напоминание вручную: «Напоминания» на iPhone или будильник в «Часах» на Android.</div>
+    </div>
+    <div class="help-block">
+      <h2>Оформление</h2>
+      <p>Выберите, как приложению выглядеть — можно переключать в любой момент.</p>
+      <div class="theme-toggle" id="themeToggle">
+        <button class="theme-btn" data-theme-choice="dark">Тёмная</button>
+        <button class="theme-btn" data-theme-choice="light">Светлая</button>
+      </div>
+    </div>
+    <div class="help-block">
       <h2>Что такое «Второе дыхание»</h2>
       <p>Не просто список галочек, а инструмент для человека, который хочет постепенно пересобрать свою жизнь через небольшие ежедневные действия. Цель — это ориентир на горизонте, а личность формируется привычками, которые вы повторяете каждый день.</p>
     </div>
@@ -551,7 +576,7 @@
     </div>
     <div class="help-block">
       <h2>Как вести дневники</h2>
-      <p>Вкладка «Дневники» — четыре отдельных блока: благодарность, успех, идеи, вклад дня. Записи сохраняются навсегда и не сбрасываются утром, в отличие от чек-листа привычек. Чтобы наговорить запись голосом, нажмите на поле и на значок микрофона рядом с ним (так же работает в задачах и привычках) или на микрофон клавиатуры телефона.</p>
+      <p>Вкладка «Дневники» — четыре отдельных блока: благодарность, успех, идеи, вклад дня. Записи сохраняются навсегда и не сбрасываются утром, в отличие от чек-листа привычек. Чтобы наговорить запись голосом, нажмите на значок микрофона справа в поле (он есть в каждом поле: в дневниках, задачах и привычках) или на микрофон клавиатуры телефона.</p>
     </div>
     <div class="help-block">
       <h2>Как пользоваться матрицей</h2>
@@ -578,23 +603,6 @@
       <div class="help-actions">
         <a class="btn" href="legal/privacy/index.html" target="_blank" rel="noopener">Политика конфиденциальности</a>
         <a class="btn" href="legal/terms/index.html" target="_blank" rel="noopener">Пользовательское соглашение</a>
-      </div>
-    </div>
-    <div class="help-block">
-      <h2>Напоминание</h2>
-      <p>Выберите время, и телефон будет напоминать отметить привычки каждый день. Напоминание создаётся в календаре телефона, поэтому работает, даже когда приложение закрыто.</p>
-      <div class="reminder-row">
-        <input type="time" id="reminderTime" value="09:00">
-        <button class="btn" id="reminderBtn">Добавить в календарь</button>
-      </div>
-      <div class="reminder-status" id="reminderStatus">Если календарь не открылся, поставьте повторяющееся напоминание вручную: «Напоминания» на iPhone или будильник в «Часах» на Android.</div>
-    </div>
-    <div class="help-block">
-      <h2>Оформление</h2>
-      <p>Выберите, как приложению выглядеть — можно переключать в любой момент.</p>
-      <div class="theme-toggle" id="themeToggle">
-        <button class="theme-btn" data-theme-choice="dark">Тёмная</button>
-        <button class="theme-btn" data-theme-choice="light">Светлая</button>
       </div>
     </div>
     <div class="help-block">
@@ -637,9 +645,6 @@
   <button class="onboard-next" id="onboardNext">Далее</button>
 </div>
 
-<button class="mic-btn hidden" id="micBtn" type="button" aria-label="Голосовой ввод">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
-</button>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
@@ -1325,7 +1330,7 @@ function maybeShowWhatsNew(){
     title: 'Стало удобнее',
     html: '<p>Все ваши записи на месте, ничего не потерялось. Вот что нового:</p>' +
       '<ul>' +
-      '<li><b>Голосовой ввод.</b> Нажмите на поле, затем на значок микрофона и наговорите текст. Работает в дневниках, задачах и привычках. Если значок не отвечает, нажмите на микрофон на клавиатуре телефона.</li>' +
+      '<li><b>Голосовой ввод.</b> Нажмите на значок микрофона справа в любом поле и наговорите текст. Работает в дневниках, задачах и привычках. Если значок не отвечает, нажмите на микрофон на клавиатуре телефона.</li>' +
       '<li><b>Напоминание.</b> «Помощь» → «Напоминание»: телефон будет напоминать отметить привычки каждый день в выбранное время.</li>' +
       '<li><b>Подбадривание.</b> На экране «Сегодня» появилась короткая фраза, которая зависит от вашего прогресса.</li>' +
       '<li><b>Оформление.</b> Тёмная или светлая тема: «Помощь» → «Оформление».</li>' +
@@ -1346,57 +1351,21 @@ function voiceErrorText(code){
   return 'Не получилось включить голосовой ввод. Нажмите микрофон на клавиатуре телефона.';
 }
 function setupVoiceInput(){
-  const btn = document.getElementById('micBtn');
-  let target = null, rec = null, listening = false, hideTimer = null;
-  const isDictatable = el => el && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && el.type === 'text')) && !el.closest('#onboardOverlay');
+  const MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+  let rec = null, activeBtn = null, pending = null;
 
-  function place(){
-    if(!target || !document.body.contains(target)){ btn.classList.add('hidden'); return; }
-    const r = target.getBoundingClientRect();
-    if(r.bottom < 0 || r.top > window.innerHeight){ btn.classList.add('hidden'); return; }
-    btn.classList.remove('hidden');
-    btn.style.top = (target.tagName === 'TEXTAREA' ? r.top + 8 : r.top + (r.height - 36) / 2) + 'px';
-    btn.style.left = (r.right - 36 - 8) + 'px';
-  }
-  function hideIfIdle(){
-    if(listening) return;
-    if(target) target.classList.remove('mic-pad');
-    btn.classList.add('hidden');
-  }
-
-  document.addEventListener('focusin', e => {
-    if(!isDictatable(e.target)) return;
-    clearTimeout(hideTimer);
-    if(target && target !== e.target) target.classList.remove('mic-pad');
-    target = e.target;
-    target.classList.add('mic-pad');
-    place();
-  });
-  document.addEventListener('focusout', () => {
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(hideIfIdle, 600);
-  });
-  let raf = 0;
-  const replace = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if(!btn.classList.contains('hidden')) place(); }); };
-  window.addEventListener('scroll', replace, true);
-  window.addEventListener('resize', replace);
-  if(window.visualViewport){ window.visualViewport.addEventListener('resize', replace); window.visualViewport.addEventListener('scroll', replace); }
-
-  // keep the focused field focused when the mic is tapped
-  btn.addEventListener('pointerdown', e => { e.preventDefault(); clearTimeout(hideTimer); });
-  btn.addEventListener('mousedown', e => e.preventDefault());
-
-  function start(){
+  function start(field, btn){
     const SR = getSpeechRecognition();
-    const field = target;
-    if(!SR || !field) return;
+    if(!SR) return;
     const base = field.value;
     let gotText = false, failed = false;
+    activeBtn = btn;
+    btn.classList.add('listening');
     rec = new SR();
     rec.lang = 'ru-RU';
     rec.interimResults = true;
     rec.continuous = false;
-    rec.onstart = () => { listening = true; btn.classList.add('listening'); place(); showToast('Говорите…'); };
+    rec.onstart = () => showToast('Говорите…');
     rec.onresult = e => {
       let text = '';
       for(let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
@@ -1409,19 +1378,22 @@ function setupVoiceInput(){
     };
     rec.onerror = e => { failed = true; showToast(voiceErrorText(e.error), 4500); };
     rec.onend = () => {
-      listening = false;
       btn.classList.remove('listening');
+      activeBtn = null; rec = null;
       if(gotText) field.dispatchEvent(new Event('change', {bubbles:true}));
       else if(!failed) showToast(voiceErrorText('no-speech'));
-      hideTimer = setTimeout(hideIfIdle, 3000);
+      const next = pending; pending = null;
+      if(next) start(next.field, next.btn);
     };
-    try{ rec.start(); } catch(err){ showToast(voiceErrorText('start'), 4500); }
+    try{ rec.start(); } catch(err){
+      btn.classList.remove('listening'); activeBtn = null; rec = null;
+      showToast(voiceErrorText('start'), 4500);
+    }
   }
 
-  btn.addEventListener('click', () => {
-    clearTimeout(hideTimer);
-    if(listening){ rec.stop(); return; }
-    if(!target) return;
+  function onMicClick(field, btn){
+    if(activeBtn === btn){ rec && rec.stop(); return; }
+    if(activeBtn){ pending = {field, btn}; rec && rec.stop(); return; }
     if(!getSpeechRecognition()){
       showToast('Голосовой ввод в этом браузере недоступен. Нажмите на микрофон на клавиатуре телефона.', 5000);
       return;
@@ -1432,12 +1404,43 @@ function setupVoiceInput(){
         html: '<p>Речь распознаёт сервис вашего браузера или телефона (в Chrome на Android — Google, в Safari на iPhone — Apple), поэтому звук передаётся ему по его правилам. Автор приложения запись не получает и не хранит.</p><p>Звук записывается только после вашего нажатия на микрофон.</p>',
         primary: 'Продолжить',
         secondary: 'Не сейчас',
-        onPrimary: () => { storage.set('voice-ok-v1', '1'); start(); }
+        onPrimary: () => { storage.set('voice-ok-v1', '1'); start(field, btn); }
       });
       return;
     }
-    start();
-  });
+    start(field, btn);
+  }
+
+  // The mic lives inside a wrapper around each field, so it scrolls with the field natively (no JS positioning).
+  function attach(field){
+    const isArea = field.tagName === 'TEXTAREA';
+    if(!isArea && !(field.tagName === 'INPUT' && field.type === 'text')) return;
+    if(field.dataset.mic) return;
+    field.dataset.mic = '1';
+    const cs = getComputedStyle(field);
+    const wrap = document.createElement('div');
+    wrap.className = 'mic-wrap ' + (isArea ? 'is-area' : 'is-input');
+    wrap.style.flex = cs.flex;
+    wrap.style.margin = cs.margin;
+    field.style.margin = '0';
+    field.parentNode.insertBefore(wrap, field);
+    wrap.appendChild(field);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mic-inline';
+    btn.setAttribute('aria-label', 'Голосовой ввод');
+    btn.innerHTML = MIC_SVG;
+    btn.addEventListener('mousedown', e => e.preventDefault());
+    btn.addEventListener('click', () => onMicClick(field, btn));
+    wrap.appendChild(btn);
+  }
+  function scan(root){
+    if(root.matches && root.matches('textarea, input[type=text]')) attach(root);
+    if(root.querySelectorAll) root.querySelectorAll('textarea, input[type=text]').forEach(attach);
+  }
+  scan(document.body);
+  new MutationObserver(muts => muts.forEach(m => m.addedNodes.forEach(n => { if(n.nodeType === 1) scan(n); })))
+    .observe(document.body, {childList:true, subtree:true});
 }
 
 /* ==================== theme ==================== */
@@ -1586,7 +1589,6 @@ function startApp(){
 
   loadMatrixTasks();
   setupHelp();
-  setupVoiceInput();
   setTab('today');
 }
 
@@ -1594,6 +1596,7 @@ function init(){
   dateKey = todayKey();
   todayDate = new Date();
   loadHabits();
+  setupVoiceInput();
 
   if(needsOnboarding()){
     showOnboarding(false);
