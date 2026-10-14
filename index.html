@@ -138,6 +138,40 @@
   .reminder-row .btn{flex:1;text-align:center;}
   .reminder-status{font-size:12.5px;color:var(--text-dim);line-height:1.5;margin-top:10px;}
 
+  /* ---- voice input, toast, modal ---- */
+  .mic-btn{
+    position:fixed;z-index:30;width:36px;height:36px;padding:0;border-radius:50%;
+    border:0.5px solid var(--hairline-strong);background:var(--ink-3);color:var(--text-dim);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .mic-btn svg{width:18px;height:18px;}
+  .mic-btn.listening{background:var(--danger);border-color:var(--danger);color:#fff;animation:micPulse 1.2s ease-in-out infinite;}
+  @keyframes micPulse{0%,100%{box-shadow:0 0 0 0 var(--danger-dim);}50%{box-shadow:0 0 0 8px transparent;}}
+  @media (prefers-reduced-motion: reduce){ .mic-btn.listening{animation:none;} }
+  .mic-pad{padding-right:52px !important;}
+  .toast{
+    position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + var(--safe-b) + 18px);
+    width:max-content;max-width:calc(100% - 32px);z-index:40;
+    background:var(--ink-3);color:var(--text);border:0.5px solid var(--hairline-strong);border-radius:10px;
+    padding:10px 14px;font-size:13px;line-height:1.4;opacity:0;pointer-events:none;transition:opacity .2s;
+  }
+  .toast.show{opacity:1;}
+  .modal-overlay{
+    position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.55);
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .modal-card{
+    background:var(--ink-2);border:0.5px solid var(--hairline-strong);border-radius:16px;
+    padding:22px;max-width:420px;width:100%;max-height:85vh;overflow-y:auto;
+  }
+  .modal-card h2{font-family:'Fraunces',serif;font-weight:500;font-size:21px;margin:0 0 12px;}
+  .modal-card p{font-size:14px;line-height:1.6;color:var(--text-dim);margin:0 0 10px;}
+  .modal-card ul{margin:0 0 12px;padding-left:18px;}
+  .modal-card li{font-size:14px;line-height:1.6;color:var(--text-dim);margin-bottom:6px;}
+  .modal-card li b{color:var(--text);font-weight:600;}
+  .modal-actions{display:flex;gap:8px;margin-top:16px;}
+  .modal-actions .btn{flex:1;text-align:center;padding:12px 16px;}
+
   /* ---- main action ---- */
   .main-action{
     background:var(--ink-2);border:0.5px solid var(--hairline-strong);border-radius:12px;
@@ -429,7 +463,7 @@
   </section>
 
   <section class="view hidden" id="view-journals">
-    <div class="journal-hint">Совет: чтобы наговорить запись голосом, нажмите значок микрофона на клавиатуре телефона.</div>
+    <div class="journal-hint">Совет: чтобы наговорить запись, нажмите на поле и на значок микрофона рядом с ним. Можно и микрофоном на клавиатуре телефона.</div>
     <div class="journal">
       <div class="journal-head">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0L12 5.35l-.77-.77a5.4 5.4 0 0 0-7.65 7.65L12 20.23l8.42-8.42a5.4 5.4 0 0 0 0-7.23z"/></svg>
@@ -517,7 +551,7 @@
     </div>
     <div class="help-block">
       <h2>Как вести дневники</h2>
-      <p>Вкладка «Дневники» — четыре отдельных блока: благодарность, успех, идеи, вклад дня. Записи сохраняются навсегда и не сбрасываются утром, в отличие от чек-листа привычек. Чтобы наговорить запись голосом, нажмите значок микрофона на клавиатуре телефона.</p>
+      <p>Вкладка «Дневники» — четыре отдельных блока: благодарность, успех, идеи, вклад дня. Записи сохраняются навсегда и не сбрасываются утром, в отличие от чек-листа привычек. Чтобы наговорить запись голосом, нажмите на поле и на значок микрофона рядом с ним (так же работает в задачах и привычках) или на микрофон клавиатуры телефона.</p>
     </div>
     <div class="help-block">
       <h2>Как пользоваться матрицей</h2>
@@ -602,6 +636,11 @@
   <div class="onboard-dots" id="onboardDots"><span class="onboard-dot active"></span><span class="onboard-dot"></span><span class="onboard-dot"></span></div>
   <button class="onboard-next" id="onboardNext">Далее</button>
 </div>
+
+<button class="mic-btn hidden" id="micBtn" type="button" aria-label="Голосовой ввод">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+</button>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ==================== storage ==================== */
@@ -1246,6 +1285,157 @@ function setTab(name){
 window.setTab = setTab;
 
 /* ==================== help actions ==================== */
+/* ==================== toast & modal ==================== */
+let toastTimer = null;
+function showToast(text, ms){
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), ms || 2600);
+}
+// title/html are fixed strings from this file, never user input
+function showModal({title, html, primary, secondary, onPrimary, onSecondary}){
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  const card = document.createElement('div');
+  card.className = 'modal-card';
+  card.innerHTML = '<h2>' + title + '</h2>' + html + '<div class="modal-actions"></div>';
+  const actions = card.querySelector('.modal-actions');
+  if(secondary){
+    const b = document.createElement('button');
+    b.className = 'btn'; b.textContent = secondary;
+    b.onclick = () => { overlay.remove(); if(onSecondary) onSecondary(); };
+    actions.appendChild(b);
+  }
+  const p = document.createElement('button');
+  p.className = 'btn primary'; p.textContent = primary;
+  p.onclick = () => { overlay.remove(); if(onPrimary) onPrimary(); };
+  actions.appendChild(p);
+  overlay.appendChild(card);
+  document.body.appendChild(overlay);
+}
+
+/* ==================== what's new (shown once to existing users) ==================== */
+const WHATS_NEW_VERSION = '2026-10-b';
+function markWhatsNewSeen(){ storage.set('whatsnew-seen', WHATS_NEW_VERSION); }
+function maybeShowWhatsNew(){
+  if(storage.get('whatsnew-seen') === WHATS_NEW_VERSION) return;
+  showModal({
+    title: 'Стало удобнее',
+    html: '<p>Все ваши записи на месте, ничего не потерялось. Вот что нового:</p>' +
+      '<ul>' +
+      '<li><b>Голосовой ввод.</b> Нажмите на поле, затем на значок микрофона и наговорите текст. Работает в дневниках, задачах и привычках.</li>' +
+      '<li><b>Напоминание.</b> «Помощь» → «Напоминание»: телефон будет напоминать отметить привычки каждый день в выбранное время.</li>' +
+      '<li><b>Подбадривание.</b> На экране «Сегодня» появилась короткая фраза, которая зависит от вашего прогресса.</li>' +
+      '<li><b>Оформление.</b> Тёмная или светлая тема: «Помощь» → «Оформление».</li>' +
+      '</ul>' +
+      '<p>Приложение по-прежнему бесплатное. Мы делаем всё, чтобы вам было удобнее, а наша миссия — чтобы ваша жизнь становилась лучше, шаг за шагом.</p>',
+    primary: 'Понятно',
+    onPrimary: markWhatsNewSeen
+  });
+}
+
+/* ==================== voice input ==================== */
+function getSpeechRecognition(){ return window.SpeechRecognition || window.webkitSpeechRecognition || null; }
+function voiceErrorText(code){
+  if(code === 'not-allowed' || code === 'service-not-allowed') return 'Нет доступа к микрофону. Разрешите его в настройках браузера или нажмите микрофон на клавиатуре телефона.';
+  if(code === 'network') return 'Для распознавания речи нужен интернет.';
+  if(code === 'audio-capture') return 'Микрофон не найден.';
+  if(code === 'no-speech') return 'Не расслышал. Нажмите на микрофон и повторите.';
+  return 'Не получилось включить голосовой ввод. Нажмите микрофон на клавиатуре телефона.';
+}
+function setupVoiceInput(){
+  const btn = document.getElementById('micBtn');
+  let target = null, rec = null, listening = false, hideTimer = null;
+  const isDictatable = el => el && (el.tagName === 'TEXTAREA' || (el.tagName === 'INPUT' && el.type === 'text')) && !el.closest('#onboardOverlay');
+
+  function place(){
+    if(!target || !document.body.contains(target)){ btn.classList.add('hidden'); return; }
+    const r = target.getBoundingClientRect();
+    if(r.bottom < 0 || r.top > window.innerHeight){ btn.classList.add('hidden'); return; }
+    btn.classList.remove('hidden');
+    btn.style.top = (target.tagName === 'TEXTAREA' ? r.top + 8 : r.top + (r.height - 36) / 2) + 'px';
+    btn.style.left = (r.right - 36 - 8) + 'px';
+  }
+  function hideIfIdle(){
+    if(listening) return;
+    if(target) target.classList.remove('mic-pad');
+    btn.classList.add('hidden');
+  }
+
+  document.addEventListener('focusin', e => {
+    if(!getSpeechRecognition() || !isDictatable(e.target)) return;
+    clearTimeout(hideTimer);
+    if(target && target !== e.target) target.classList.remove('mic-pad');
+    target = e.target;
+    target.classList.add('mic-pad');
+    place();
+  });
+  document.addEventListener('focusout', () => {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(hideIfIdle, 600);
+  });
+  let raf = 0;
+  const replace = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if(!btn.classList.contains('hidden')) place(); }); };
+  window.addEventListener('scroll', replace, true);
+  window.addEventListener('resize', replace);
+  if(window.visualViewport){ window.visualViewport.addEventListener('resize', replace); window.visualViewport.addEventListener('scroll', replace); }
+
+  // keep the focused field focused when the mic is tapped
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); clearTimeout(hideTimer); });
+  btn.addEventListener('mousedown', e => e.preventDefault());
+
+  function start(){
+    const SR = getSpeechRecognition();
+    const field = target;
+    if(!SR || !field) return;
+    const base = field.value;
+    let gotText = false, failed = false;
+    rec = new SR();
+    rec.lang = 'ru-RU';
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onstart = () => { listening = true; btn.classList.add('listening'); place(); showToast('Говорите…'); };
+    rec.onresult = e => {
+      let text = '';
+      for(let i = 0; i < e.results.length; i++) text += e.results[i][0].transcript;
+      text = text.trim();
+      if(!text) return;
+      gotText = true;
+      if(!base) text = text.charAt(0).toUpperCase() + text.slice(1);
+      field.value = base + (base && !/\s$/.test(base) ? ' ' : '') + text;
+      field.dispatchEvent(new Event('input', {bubbles:true}));
+    };
+    rec.onerror = e => { failed = true; showToast(voiceErrorText(e.error), 4500); };
+    rec.onend = () => {
+      listening = false;
+      btn.classList.remove('listening');
+      if(gotText) field.dispatchEvent(new Event('change', {bubbles:true}));
+      else if(!failed) showToast(voiceErrorText('no-speech'));
+      hideTimer = setTimeout(hideIfIdle, 3000);
+    };
+    try{ rec.start(); } catch(err){ showToast(voiceErrorText('start'), 4500); }
+  }
+
+  btn.addEventListener('click', () => {
+    clearTimeout(hideTimer);
+    if(listening){ rec.stop(); return; }
+    if(!target) return;
+    if(!storage.get('voice-ok-v1')){
+      showModal({
+        title: 'Голосовой ввод',
+        html: '<p>Речь распознаёт сервис вашего браузера или телефона (в Chrome на Android — Google, в Safari на iPhone — Apple), поэтому звук передаётся ему по его правилам. Автор приложения запись не получает и не хранит.</p><p>Звук записывается только после вашего нажатия на микрофон.</p>',
+        primary: 'Продолжить',
+        secondary: 'Не сейчас',
+        onPrimary: () => { storage.set('voice-ok-v1', '1'); start(); }
+      });
+      return;
+    }
+    start();
+  });
+}
+
 /* ==================== theme ==================== */
 const THEME_COLORS = { dark:'#0F1115', light:'#FAF7F2' };
 function getTheme(){
@@ -1365,6 +1555,7 @@ function showOnboarding(replay){
     overlay.classList.add('hidden');
     if(!replay){
       storage.set('onboarded','true');
+      markWhatsNewSeen();
       if(!habits){
         const names = picked.map(p=>p.trim()).filter(Boolean);
         if(!skipped && names.length>0){
@@ -1391,6 +1582,7 @@ function startApp(){
 
   loadMatrixTasks();
   setupHelp();
+  setupVoiceInput();
   setTab('today');
 }
 
@@ -1404,6 +1596,7 @@ function init(){
   } else {
     if(!habits) habits = defaultHabits(), saveHabits();
     startApp();
+    maybeShowWhatsNew();
   }
 }
 init();
