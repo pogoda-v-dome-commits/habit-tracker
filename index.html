@@ -1325,7 +1325,7 @@ function maybeShowWhatsNew(){
     title: 'Стало удобнее',
     html: '<p>Все ваши записи на месте, ничего не потерялось. Вот что нового:</p>' +
       '<ul>' +
-      '<li><b>Голосовой ввод.</b> Нажмите на поле, затем на значок микрофона и наговорите текст. Работает в дневниках, задачах и привычках.</li>' +
+      '<li><b>Голосовой ввод.</b> Нажмите на поле, затем на значок микрофона и наговорите текст. Работает в дневниках, задачах и привычках. Если значок не отвечает, нажмите на микрофон на клавиатуре телефона.</li>' +
       '<li><b>Напоминание.</b> «Помощь» → «Напоминание»: телефон будет напоминать отметить привычки каждый день в выбранное время.</li>' +
       '<li><b>Подбадривание.</b> На экране «Сегодня» появилась короткая фраза, которая зависит от вашего прогресса.</li>' +
       '<li><b>Оформление.</b> Тёмная или светлая тема: «Помощь» → «Оформление».</li>' +
@@ -1365,7 +1365,7 @@ function setupVoiceInput(){
   }
 
   document.addEventListener('focusin', e => {
-    if(!getSpeechRecognition() || !isDictatable(e.target)) return;
+    if(!isDictatable(e.target)) return;
     clearTimeout(hideTimer);
     if(target && target !== e.target) target.classList.remove('mic-pad');
     target = e.target;
@@ -1422,6 +1422,10 @@ function setupVoiceInput(){
     clearTimeout(hideTimer);
     if(listening){ rec.stop(); return; }
     if(!target) return;
+    if(!getSpeechRecognition()){
+      showToast('Голосовой ввод в этом браузере недоступен. Нажмите на микрофон на клавиатуре телефона.', 5000);
+      return;
+    }
     if(!storage.get('voice-ok-v1')){
       showModal({
         title: 'Голосовой ввод',
