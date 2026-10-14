@@ -1408,56 +1408,70 @@ window.addEventListener('resize', growAll);
 
 function setupVoiceInput(){
   const MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
-  let rec = null, activeBtn = null, pending = null;
+  let rec = null, activeBtn = null, session = null;
 
   function start(field, btn){
     const SR = getSpeechRecognition();
     if(!SR) return;
     const base = field.value;
-    let gotText = false, failed = false, finalText = '';
+    let failed = false, finalText = '';
+    const sess = session = { field, cancelled: false, gotText: false };
     activeBtn = btn;
     btn.classList.add('listening');
-    rec = new SR();
-    rec.lang = 'ru-RU';
-    rec.interimResults = true;
+    const r = rec = new SR();
+    r.lang = 'ru-RU';
+    r.interimResults = true;
     // keeps listening through pauses; the user ends it by tapping the mic again
-    rec.continuous = true;
-    rec.onstart = () => showToast('Говорите. Чтобы закончить, нажмите на микрофон ещё раз.', 4000);
-    rec.onresult = e => {
+    r.continuous = true;
+    r.onstart = () => { if(!sess.cancelled) showToast('Говорите. Чтобы закончить, нажмите на микрофон ещё раз.', 4000); };
+    r.onresult = e => {
+      if(sess.cancelled) return;
       // only the results that changed, finals accumulated: avoids the repeated or glued text some browsers produce
       let interim = '';
       for(let i = e.resultIndex; i < e.results.length; i++){
-        const r = e.results[i], t = r[0].transcript;
-        if(r.isFinal) finalText += ' ' + t; else interim += ' ' + t;
+        const res = e.results[i], t = res[0].transcript;
+        if(res.isFinal) finalText += ' ' + t; else interim += ' ' + t;
       }
       let text = (finalText + interim).replace(/\s+/g, ' ').trim();
       if(!text) return;
-      gotText = true;
+      sess.gotText = true;
       if(!base) text = text.charAt(0).toUpperCase() + text.slice(1);
       field.value = base + (base && !/\s$/.test(base) ? ' ' : '') + text;
       field.dispatchEvent(new Event('input', {bubbles:true}));
     };
-    rec.onerror = e => {
-      if(e.error === 'aborted') return;
+    r.onerror = e => {
+      if(sess.cancelled || e.error === 'aborted') return;
       failed = true; showToast(voiceErrorText(e.error), 4500);
     };
-    rec.onend = () => {
+    r.onend = () => {
+      if(sess.cancelled) return;
       btn.classList.remove('listening');
-      activeBtn = null; rec = null;
-      if(gotText) field.dispatchEvent(new Event('change', {bubbles:true}));
+      activeBtn = null; rec = null; session = null;
+      if(sess.gotText) field.dispatchEvent(new Event('change', {bubbles:true}));
       else if(!failed) showToast(voiceErrorText('no-speech'));
-      const next = pending; pending = null;
-      if(next) start(next.field, next.btn);
     };
-    try{ rec.start(); } catch(err){
-      btn.classList.remove('listening'); activeBtn = null; rec = null;
+    try{ r.start(); } catch(err){
+      btn.classList.remove('listening'); activeBtn = null; rec = null; session = null;
       showToast(voiceErrorText('start'), 4500);
     }
   }
 
+  // Anything else the user taps (Save, "+", another field's mic) or Enter ends dictation at once and drops late
+  // results; otherwise a result arriving after "Записать" would refill the cleared field and get saved twice.
+  function cancelActive(){
+    if(!activeBtn) return;
+    const sess = session, r = rec;
+    sess.cancelled = true;
+    activeBtn.classList.remove('listening');
+    activeBtn = null; rec = null; session = null;
+    try{ r.abort(); } catch(err){}
+    if(sess.gotText) sess.field.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+  document.addEventListener('click', e => { if(activeBtn && !activeBtn.contains(e.target)) cancelActive(); }, true);
+  document.addEventListener('keydown', e => { if(activeBtn && e.key === 'Enter') cancelActive(); }, true);
+
   function onMicClick(field, btn){
     if(activeBtn === btn){ rec && rec.stop(); return; }
-    if(activeBtn){ pending = {field, btn}; rec && rec.stop(); return; }
     if(!getSpeechRecognition()){
       showToast('Голосовой ввод в этом браузере недоступен. Нажмите на микрофон на клавиатуре телефона.', 5000);
       return;
