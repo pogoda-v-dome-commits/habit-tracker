@@ -128,6 +128,15 @@
   .ring-pct{font-family:'IBM Plex Mono',monospace;font-size:16px;font-weight:500;}
   .today-head-text .date{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--text-dim);text-transform:capitalize;}
   .today-head-text .sub{font-size:13.5px;color:var(--text-dim);margin-top:4px;}
+  .today-head-text .motivation{font-size:13px;color:var(--dawn);margin-top:6px;line-height:1.4;}
+  .journal-hint{font-size:12.5px;color:var(--text-dim);line-height:1.5;margin:0 0 18px;}
+  .reminder-row{display:flex;gap:8px;margin-top:12px;align-items:stretch;}
+  .reminder-row input[type=time]{
+    flex:none;background:var(--ink-3);border:0.5px solid var(--hairline-strong);border-radius:8px;
+    color:var(--text);font-size:14px;padding:9px 12px;
+  }
+  .reminder-row .btn{flex:1;text-align:center;}
+  .reminder-status{font-size:12.5px;color:var(--text-dim);line-height:1.5;margin-top:10px;}
 
   /* ---- main action ---- */
   .main-action{
@@ -373,6 +382,7 @@
       <div class="today-head-text">
         <div class="date" id="dateLabel">—</div>
         <div class="sub" id="progressSub">Загрузка…</div>
+        <div class="motivation" id="motivationLine"></div>
       </div>
     </div>
 
@@ -419,6 +429,7 @@
   </section>
 
   <section class="view hidden" id="view-journals">
+    <div class="journal-hint">Совет: чтобы наговорить запись голосом, нажмите значок микрофона на клавиатуре телефона.</div>
     <div class="journal">
       <div class="journal-head">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0L12 5.35l-.77-.77a5.4 5.4 0 0 0-7.65 7.65L12 20.23l8.42-8.42a5.4 5.4 0 0 0 0-7.23z"/></svg>
@@ -506,7 +517,7 @@
     </div>
     <div class="help-block">
       <h2>Как вести дневники</h2>
-      <p>Вкладка «Дневники» — четыре отдельных блока: благодарность, успех, идеи, вклад дня. Записи сохраняются навсегда и не сбрасываются утром, в отличие от чек-листа привычек.</p>
+      <p>Вкладка «Дневники» — четыре отдельных блока: благодарность, успех, идеи, вклад дня. Записи сохраняются навсегда и не сбрасываются утром, в отличие от чек-листа привычек. Чтобы наговорить запись голосом, нажмите значок микрофона на клавиатуре телефона.</p>
     </div>
     <div class="help-block">
       <h2>Как пользоваться матрицей</h2>
@@ -534,6 +545,15 @@
         <a class="btn" href="legal/privacy/index.html" target="_blank" rel="noopener">Политика конфиденциальности</a>
         <a class="btn" href="legal/terms/index.html" target="_blank" rel="noopener">Пользовательское соглашение</a>
       </div>
+    </div>
+    <div class="help-block">
+      <h2>Напоминание</h2>
+      <p>Выберите время, и телефон будет напоминать отметить привычки каждый день. Напоминание создаётся в календаре телефона, поэтому работает, даже когда приложение закрыто.</p>
+      <div class="reminder-row">
+        <input type="time" id="reminderTime" value="09:00">
+        <button class="btn" id="reminderBtn">Добавить в календарь</button>
+      </div>
+      <div class="reminder-status" id="reminderStatus">Если календарь не открылся, поставьте повторяющееся напоминание вручную: «Напоминания» на iPhone или будильник в «Часах» на Android.</div>
     </div>
     <div class="help-block">
       <h2>Оформление</h2>
@@ -845,6 +865,75 @@ function updateProgress(){
   const CIRC = 207.3;
   document.getElementById('ringFg').style.strokeDashoffset = CIRC - (CIRC*pct/100);
   document.getElementById('progressSub').textContent = total ? `Выполнено ${done} из ${total}` : 'На сегодня привычек не запланировано';
+  document.getElementById('motivationLine').textContent = total ? motivationFor(pct) : '';
+}
+
+function motivationFor(pct){
+  const pools = {
+    morning: ['Начните с самой маленькой привычки.', 'Одна галочка уже запускает день.'],
+    late: ['Ещё не поздно отметить хотя бы одну.', 'Даже одна галочка сегодня лучше нуля.'],
+    started: ['Начало положено. Каждая галочка считается.', 'Хороший старт, продолжайте.'],
+    mid: ['Половина пути пройдена.', 'Вы на полпути, не останавливайтесь.'],
+    half: ['Больше половины позади, осталось чуть-чуть.', 'Почти у цели, ещё немного.'],
+    full: ['День закрыт. Так держать.', 'Все привычки на сегодня выполнены.']
+  };
+  let key;
+  if(pct >= 100) key = 'full';
+  else if(pct > 50) key = 'half';
+  else if(pct === 50) key = 'mid';
+  else if(pct > 0) key = 'started';
+  else key = new Date().getHours() < 12 ? 'morning' : 'late';
+  const list = pools[key];
+  const dayIndex = Math.floor(Date.now() / 86400000);
+  return list[dayIndex % list.length];
+}
+
+function buildReminderIcs(timeStr){
+  const [hh, mm] = timeStr.split(':');
+  const now = new Date();
+  const pad = n => String(n).padStart(2, '0');
+  const day = now.getFullYear() + pad(now.getMonth() + 1) + pad(now.getDate());
+  const stamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Vtoroe dyhanie//RU',
+    'CALSCALE:GREGORIAN',
+    'BEGIN:VEVENT',
+    'UID:daily-reminder@vtoroe-dyhanie',
+    'DTSTAMP:' + stamp,
+    'DTSTART:' + day + 'T' + hh + mm + '00',
+    'DURATION:PT10M',
+    'RRULE:FREQ=DAILY',
+    'SUMMARY:Второе дыхание: привычки',
+    'DESCRIPTION:Отметьте привычки за сегодня.',
+    'BEGIN:VALARM',
+    'TRIGGER:PT0S',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Отметьте привычки',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n') + '\r\n';
+}
+
+function setupReminder(){
+  const timeInput = document.getElementById('reminderTime');
+  const status = document.getElementById('reminderStatus');
+  const saved = storage.get('reminder-time-v1');
+  if(saved) timeInput.value = saved;
+  document.getElementById('reminderBtn').onclick = () => {
+    const t = timeInput.value;
+    if(!t){ status.textContent = 'Выберите время напоминания.'; return; }
+    storage.set('reminder-time-v1', t);
+    const blob = new Blob([buildReminderIcs(t)], {type:'text/calendar;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'vtoroe-dyhanie-reminder.ics';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+    status.textContent = 'Файл напоминания на ' + t + ' готов. Подтвердите добавление в календарь. Если календарь не открылся, поставьте повторяющееся напоминание вручную: «Напоминания» на iPhone или будильник в «Часах» на Android.';
+  };
 }
 
 function setupAddForm(){
@@ -1193,6 +1282,7 @@ function exportBackup(){
 
 function setupHelp(){
   setupThemeToggle();
+  setupReminder();
   document.getElementById('btnReplayIntro').onclick = () => showOnboarding(true);
   document.getElementById('btnExport').onclick = exportBackup;
   document.getElementById('btnImport').onclick = () => document.getElementById('importFile').click();
