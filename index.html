@@ -305,6 +305,7 @@
   .journal-entry{background:var(--ink-2);padding:14px 18px;display:flex;gap:14px;align-items:flex-start;}
   .journal-entry .dot{flex:none;width:7px;height:7px;border-radius:50%;background:var(--sage);margin-top:7px;}
   .journal-entry .content{flex:1;min-width:0;}
+  .journal-entry .icon-btn{flex:none;margin:-4px -6px 0 0;}
   .journal-entry .entry-date{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-faint);margin-bottom:4px;}
   .journal-entry .entry-text{font-size:14px;line-height:1.55;white-space:pre-wrap;}
 
@@ -1079,6 +1080,12 @@ function renderJournal(kind){
     row.className = 'journal-entry';
     row.innerHTML = `<div class="dot"></div><div class="content"><div class="entry-date">${e.dateLabel}</div><div class="entry-text"></div></div>`;
     row.querySelector('.entry-text').textContent = e.text;
+    row.appendChild(iconBtn('trash', () => {
+      if(!confirm('Удалить эту запись? Отменить будет нельзя.')) return;
+      journals[kind] = journals[kind].filter(x => x.id !== e.id);
+      saveJournal(kind);
+      renderJournal(kind);
+    }, true));
     el.appendChild(row);
   });
 }
